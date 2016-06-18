@@ -1,29 +1,26 @@
 package com.example.paranoid.geoloc_gid;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import com.activeandroid.DatabaseHelper;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-import android.location.LocationManager;
+import org.w3c.dom.Document;
 
-import java.io.IOException;
-import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -34,6 +31,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //    StringBuilder sbNet = new StringBuilder();
 
     private Location coordinates;
+    private GeoObject[] mMarkers;
 
 
     @Override
@@ -74,22 +72,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMyLocationChange(Location location) {
                 coordinates = location;
+//                for(GeoObject marker : mMarkers){
+//                    Location loc = new Location("");
+//                    loc.setLatitude(marker.lat);
+//                    loc.setLongitude(marker.lng);
+//                    float meters = location.distanceTo(loc);
+//                    Log.i("INFO", Float.toString(meters));
+//                }
             }
         });
 
-        DataBaseContext ctx = new DataBaseContext(this);
-        SQLiteDatabase db = ctx.openOrCreateDatabase("geoDB.sqlite", 0, null);
-
-        String[] columns = {"lat", "lng", "name"};
-        Cursor cur = db.query("objects", columns, null, null, null, null, null, null);
-        while (cur.moveToNext()){
-            String name = cur.getString(cur.getColumnIndex("name"));
-            double lat = cur.getDouble(cur.getColumnIndex("lat"));
-            double lng = cur.getDouble(cur.getColumnIndex("lng"));
-
-            mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(name));
+        mMarkers = GeoObject.getAll(this);
+        for(GeoObject marker : mMarkers){
+            mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(marker.lat, marker.lng))
+                .title(marker.name)
+                .snippet(marker.dscr));
         }
-        cur.close();
+
+        GMapV2DirectionAsyncTask.route(mMarkers[0].getLatLng(), mMarkers[1].getLatLng(), mMap);
+
+//        mMap.addMarker(new MarkerOptions()
+//        .icon(BitmapDescriptorFactory.fromResource(R.drawable.cast_ic_notification_0)));
     }
 
     public void onClickTest(View view) {
@@ -123,9 +127,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setIndoorEnabled(false);
         //mMap.setBuildingsEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-//        mMap.addMarker(new MarkerOptions()
-//        .icon(BitmapDescriptorFactory
-//        .fromResource(R.drawable.cast_ic_notification_0)));
         init();
     }
 }
