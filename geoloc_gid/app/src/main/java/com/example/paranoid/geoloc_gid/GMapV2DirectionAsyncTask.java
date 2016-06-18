@@ -83,7 +83,7 @@ public class GMapV2DirectionAsyncTask extends AsyncTask<String, Void, Document> 
     protected void onProgressUpdate(Void... values) {
     }
 
-    static public void route(LatLng sourcePosition, LatLng destPosition, final GoogleMap googleMap) {
+    static public void route(LatLng sourcePosition, LatLng destPosition, final MapsActivity activity) {
         final Handler handler = new Handler() {
             public void handleMessage(Message msg) {
                 try {
@@ -95,8 +95,7 @@ public class GMapV2DirectionAsyncTask extends AsyncTask<String, Void, Document> 
                     for (int i = 0; i < directionPoint.size(); i++) {
                         rectLine.add(directionPoint.get(i));
                     }
-                    Polyline polylin = googleMap.addPolyline(rectLine);
-                    //polylin.remove();
+                    activity.polyline = activity.mMap.addPolyline(rectLine);
                     md.getDurationText(doc);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -106,6 +105,6 @@ public class GMapV2DirectionAsyncTask extends AsyncTask<String, Void, Document> 
             ;
         };
 
-        new GMapV2DirectionAsyncTask(handler, sourcePosition, destPosition, GMapV2Direction.MODE_DRIVING).execute();
+        new GMapV2DirectionAsyncTask(handler, sourcePosition, destPosition, GMapV2Direction.MODE_WALKING).execute();
     }
 }

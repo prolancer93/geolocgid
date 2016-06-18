@@ -14,6 +14,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -24,7 +25,6 @@ import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    private GoogleMap mMap;
     final String TAG = "myLogs";
 //    private LocationManager locationManager;
 //    StringBuilder sbGPS = new StringBuilder();
@@ -32,6 +32,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Location coordinates;
     private GeoObject[] mMarkers;
+    public  Polyline polyline;
+    public  GoogleMap mMap;
 
 
     @Override
@@ -49,6 +51,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void init() {
+        final MapsActivity self = this;
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -57,8 +60,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
-            public void onMapLongClick(LatLng latLng) {
-                Log.d(TAG, "onMapLongClick: " + latLng.latitude + "," + latLng.longitude);
+            public void onMapLongClick(LatLng to) {
+                if(coordinates == null) return;
+                LatLng from = new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
+
+                if(self.polyline != null)
+                    self.polyline.remove();
+                GMapV2DirectionAsyncTask.route(from, to, self);
             }
         });
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
@@ -84,13 +92,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMarkers = GeoObject.getAll(this);
         for(GeoObject marker : mMarkers){
-            mMap.addMarker(new MarkerOptions()
+            Marker m = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(marker.lat, marker.lng))
                 .title(marker.name)
                 .snippet(marker.dscr));
         }
-
-        GMapV2DirectionAsyncTask.route(mMarkers[0].getLatLng(), mMarkers[1].getLatLng(), mMap);
 
 //        mMap.addMarker(new MarkerOptions()
 //        .icon(BitmapDescriptorFactory.fromResource(R.drawable.cast_ic_notification_0)));
